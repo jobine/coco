@@ -1,16 +1,15 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { getExtensionUri } from '../util/vscode';
+import { CocoExtension } from '../extension/cocoExtension';
 
-export async function activateExtension(context: vscode.ExtensionContext): Promise<void> {
-    vscode.commands.executeCommand(
-        'markdown.showPreview',
-        vscode.Uri.file(
-            context.asAbsolutePath(
-                path.join(getExtensionUri().fsPath, 'media', 'welcome.md')
-            )
-        )
-    );
+export async function activateExtension(context: vscode.ExtensionContext) {
+    const extension = new CocoExtension(context);
+
+    extension.register();
+    
+    vscode.commands.executeCommand('coco.openWelcome');
+
+    throw new Error('This is an error');
 
     if (!context.globalState.get('coco.installed')) {
         context.globalState.update('coco.installed', true);

@@ -3,7 +3,7 @@
   "displayName": "CoCo - Code Copilot",
   "description": "Code copliot based on Ollama.",
   "version": "0.0.1",
-  "publisher": "CoCo",
+  "publisher": "mingzhao",
   "pricing": "Free",
   "repository": {
     "type": "git",
