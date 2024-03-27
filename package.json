@@ -1,22 +1,26 @@
 {
   "name": "coco",
-  "displayName": "CoCo",
+  "displayName": "CoCo - Code Copilot",
   "description": "Code copliot based on Ollama.",
   "version": "0.0.1",
+  "publisher": "CoCo",
+  "pricing": "Free",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jobine/coco"
+  },
   "engines": {
     "vscode": "^1.87.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "coco.helloWorld",
-        "title": "Hello World"
-      }
     ]
   },
   "scripts": {
