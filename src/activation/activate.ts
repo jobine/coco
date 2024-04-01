@@ -8,8 +8,7 @@ export async function activateExtension(context: vscode.ExtensionContext) {
     extension.register();
     
     vscode.commands.executeCommand('coco.openWelcome');
-
-    throw new Error('This is an error');
+    // vscode.commands.executeCommand('coco.openSettings');
 
     if (!context.globalState.get('coco.installed')) {
         context.globalState.update('coco.installed', true);

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { activateExtension } from './activation/activate';
 
-async function dynamicImportAndActivate(context: vscode.ExtensionContext) {
+async function dynamicActivate(context: vscode.ExtensionContext) {
 	// const {activateExtension} = await import('./activation/activate');
 
 	try {
@@ -24,7 +24,7 @@ async function dynamicImportAndActivate(context: vscode.ExtensionContext) {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	dynamicImportAndActivate(context);
+	dynamicActivate(context);
 }
 
 // This method is called when your extension is deactivated

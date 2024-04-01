@@ -5,6 +5,19 @@ import * as fs from 'fs';
 import { getLogPath } from '../util/vscode';
 import { get } from 'http';
 
+
+async function provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, cancellationToken: vscode.CancellationToken) {
+    const item = new vscode.CompletionItem('Code Copilot Autocomplete.');
+    item.insertText = new vscode.SnippetString('${1:}');
+
+    // if (responsePreview) await new Promise(resolve => setTimeout(resolve, responsePreviewDelay * 1000));
+    return [item];
+}
+
+// async function autocompleteCommand(textEditor: vscode.TextEditor, cancellationToken?: vscode.CancellationToken) {
+
+// }
+
 const commandsMap: (
     context: vscode.ExtensionContext
 ) => {[command: string]: (...args: any) => any} = (context) => ({
@@ -17,6 +30,9 @@ const commandsMap: (
             'markdown.showPreview',
             vscode.Uri.joinPath(context.extensionUri, 'assets', 'welcome.md')
         );
+    },
+    'coco.openSettings': () => {
+        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:coco');
     }
 });
 
@@ -28,4 +44,12 @@ export function registerCommands(context: vscode.ExtensionContext) {
             vscode.commands.registerCommand(command, handler)
         );
     }
+
+    // Register the completion provider
+    const completionProvider = vscode.languages.registerCompletionItemProvider('*', {
+        provideCompletionItems
+    },
+        ' '// TODO: ...completionKeys.split('')
+    );
+    context.subscriptions.push(completionProvider);
 }
