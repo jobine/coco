@@ -32,7 +32,7 @@ const commandsMap: (
         );
     },
     'coco.openSettings': () => {
-        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:coco');
+        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:mingzhao.coco');
     }
 });
 

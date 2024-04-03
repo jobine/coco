@@ -7,7 +7,7 @@
   "pricing": "Free",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jobine/coco"
+    "url": "git+https://github.com/jobine/coco.git"
   },
   "engines": {
     "vscode": "^1.87.0"
@@ -15,13 +15,21 @@
   "categories": [
     "Other"
   ],
+  "icon": "assets/icon.png",
+  "keywords": [
+    "chatgpt",
+    "github",
+    "copilot",
+    "llama",
+    "codegpt",
+    "ai"
+  ],
   "activationEvents": [
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-    ]
+    "commands": []
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -41,5 +49,11 @@
     "typescript": "^5.3.3",
     "@vscode/test-cli": "^0.0.6",
     "@vscode/test-electron": "^2.3.9"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/jobine/coco/issues"
+  },
+  "homepage": "https://github.com/jobine/coco#readme",
+  "author": "Ming Zhao",
+  "license": "MIT"
 }
