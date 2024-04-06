@@ -1,4 +1,4 @@
-import * as vscode from 'vscode'
+import * as vscode from 'vscode';
 
 const statusBarItemText = (enabled: boolean | undefined) => enabled ? '$(check) CoCo' : '$(circle-slash) Coco';
 
@@ -28,4 +28,14 @@ export function setupStatusBar(enabled: boolean | undefined, loading?: boolean) 
     statusBarItem.show();
 
     lastStatusBarItem = statusBarItem;
+
+    vscode.workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration('coco')) {
+            const config = vscode.workspace.getConfiguration('coco');
+            const enabled = config.get<boolean>('enableCodeCopilot');
+
+            statusBarItem.dispose();
+            setupStatusBar(enabled);
+        }
+    });
 }
