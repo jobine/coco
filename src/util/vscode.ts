@@ -28,3 +28,16 @@ export function getLogPath(): string {
 
     return logPath;
 }
+
+export function getConfigValue<T>(key: string, defaultValue?: T) {
+    const config = vscode.workspace.getConfiguration('coco');
+    const value = config.get<T>(key);
+
+    return value || defaultValue;
+}
+
+export function updateConfigValue(key: string, value: boolean | string) {
+    const config = vscode.workspace.getConfiguration('coco');
+
+    config.update('enableAutoComplete', value, vscode.ConfigurationTarget.Global);
+}

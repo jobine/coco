@@ -32,10 +32,26 @@
     "configuration": {
       "title": "Code Copilot",
       "properties": {
-        "coco.enableAutoComplete":{
+        "coco.enableAutoComplete": {
           "type": "boolean",
           "default": true,
           "description": "Enable CoCo's autocomplete feature via Tab."
+        },
+        "coco.endpoint": {
+          "type": "string",
+          "default": "http://localhost:11434/api/generate",
+          "description": "The endpoint of the ollama REST API."
+        },
+        "coco.model": {
+          "type": "string",
+          "default": "starcoder2:7b-q4_K_M",
+          "description": "The model to use for generating completions."
+        },
+        "messageHeader": {
+          "type": "string",
+          "editPresentation": "multilineText",
+          "default": "The following is a complete {LANG} file named {FILE_NAME} in the project {PROJECT_NAME}. Anything NOT code is written as a CODE COMMENT. \n\n```\n",
+          "description": "Pseudo-system prompt, optimized for code completion. It is recommended to keep the format the same if modified. Leave blank for no formatting (raw)."
         }
       }
     },
@@ -50,20 +66,23 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.87.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",
+    "@types/vscode": "^1.87.0",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
-    "eslint": "^8.56.0",
-    "typescript": "^5.3.3",
     "@vscode/test-cli": "^0.0.6",
-    "@vscode/test-electron": "^2.3.9"
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
   },
   "bugs": {
     "url": "https://github.com/jobine/coco/issues"
   },
   "homepage": "https://github.com/jobine/coco#readme",
   "author": "Ming Zhao",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.8"
+  }
 }
