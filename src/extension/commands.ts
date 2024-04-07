@@ -33,7 +33,12 @@ const commandsMap: (
     },
     'coco.openSettings': () => {
         vscode.commands.executeCommand('workbench.action.openSettings', '@ext:mingzhao.coco');
-    }
+    },
+    'coco.toggleAutocomplete': () => {
+        const config = vscode.workspace.getConfiguration('coco');
+        const enabled = config.get<boolean>('enableAutoComplete');
+        config.update('enableAutoComplete', !enabled, vscode.ConfigurationTarget.Global);
+    },
 });
 
 

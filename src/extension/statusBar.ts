@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
-const statusBarItemText = (enabled: boolean | undefined) => enabled ? '$(check) CoCo' : '$(circle-slash) Coco';
+const statusBarItemText = (enabled: boolean | undefined) => enabled ? '$(check) CoCo' : '$(circle-slash) CoCo';
+const statusBarItemTooltip = (enabled: boolean | undefined) => enabled ? 'CoCo Autocomplete is enabled.' : 'Click to enable CoCo Autocomplete.';
 
 let lastStatusBarItem: vscode.StatusBarItem | undefined = undefined;
 let statusBarFalseTimeout: NodeJS.Timeout | undefined = undefined;
@@ -19,7 +20,9 @@ export function setupStatusBar(enabled: boolean | undefined, loading?: boolean) 
 
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 
-    statusBarItem.text = loading ? '$(loading~spin) Coco' : statusBarItemText(enabled);
+    statusBarItem.text = loading ? '$(loading~spin) CoCo' : statusBarItemText(enabled);
+    statusBarItem.tooltip = statusBarItemTooltip(enabled);
+    statusBarItem.command = 'coco.toggleAutocomplete';
 
     if (lastStatusBarItem) {
         lastStatusBarItem.dispose();
@@ -32,7 +35,7 @@ export function setupStatusBar(enabled: boolean | undefined, loading?: boolean) 
     vscode.workspace.onDidChangeConfiguration((event) => {
         if (event.affectsConfiguration('coco')) {
             const config = vscode.workspace.getConfiguration('coco');
-            const enabled = config.get<boolean>('enableCodeCopilot');
+            const enabled = config.get<boolean>('enableAutoComplete');
 
             statusBarItem.dispose();
             setupStatusBar(enabled);

@@ -29,6 +29,16 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Code Copilot",
+      "properties": {
+        "coco.enableAutoComplete":{
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CoCo's autocomplete feature via Tab."
+        }
+      }
+    },
     "commands": []
   },
   "scripts": {
