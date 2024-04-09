@@ -33,11 +33,11 @@ export function getConfigValue<T>(key: string, defaultValue?: T) {
     const config = vscode.workspace.getConfiguration('coco');
     const value = config.get<T>(key);
 
-    return value || defaultValue;
+    return value || defaultValue as T;
 }
 
 export function updateConfigValue(key: string, value: boolean | string) {
     const config = vscode.workspace.getConfiguration('coco');
 
-    config.update('enableAutoComplete', value, vscode.ConfigurationTarget.Global);
+    config.update(key, value, vscode.ConfigurationTarget.Global);
 }

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-const statusBarItemText = (enabled: boolean | undefined) => enabled ? '$(check) CoCo' : '$(circle-slash) CoCo';
+const statusBarItemText = (enabled: boolean | undefined) => enabled ? '$(rocket) CoCo' : '$(circle-slash) CoCo';
 const statusBarItemTooltip = (enabled: boolean | undefined) => enabled ? 'CoCo Autocomplete is enabled.' : 'Click to enable CoCo Autocomplete.';
 
 let lastStatusBarItem: vscode.StatusBarItem | undefined = undefined;

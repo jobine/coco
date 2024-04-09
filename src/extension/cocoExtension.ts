@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { registerCommands } from './commands';
+import { registerProviders } from './provider';
 import { setupStatusBar } from './statusBar';
 import { getConfigValue } from '../util/vscode';
 
@@ -19,5 +20,6 @@ export class CocoExtension {
 
     private register(): void {
         registerCommands(this.context);
+        registerProviders(this.context);
     }
 }

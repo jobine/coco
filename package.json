@@ -44,7 +44,7 @@
         },
         "coco.model": {
           "type": "string",
-          "default": "starcoder2:7b-q4_K_M",
+          "default": "gemma:7b",
           "description": "The model to use for generating completions."
         },
         "messageHeader": {
