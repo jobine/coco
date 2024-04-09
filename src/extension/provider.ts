@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 import { getConfigValue, isSupported } from '../util/vscode';
-import { info } from '../util/log'
+import { info, warn } from '../util/log';
 import { AsyncLock } from '../util/lock';
 
 const lock = new AsyncLock();
@@ -126,7 +126,18 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
     }
 
     try {
+        if (cancellationToken.isCancellationRequested) {
+            return ;
+        }
 
+        return await lock.inLock(async () => {
+            let prepared = 
+            if (cancellationToken.isCancellationRequested) {
+                return ;
+            }
+        });
+    } catch (e) {
+        warn('Error inline completion: ', e);
     }
 
     return undefined;
