@@ -47,11 +47,32 @@
           "default": "gemma:7b",
           "description": "The model to use for generating completions."
         },
-        "messageHeader": {
+        "coco.messageHeader": {
           "type": "string",
           "editPresentation": "multilineText",
           "default": "The following is a complete {LANG} file named {FILE_NAME} in the project {PROJECT_NAME}. Anything NOT code is written as a CODE COMMENT. \n\n```\n",
           "description": "Pseudo-system prompt, optimized for code completion. It is recommended to keep the format the same if modified. Leave blank for no formatting (raw)."
+        },
+        "coco.maxTokens": {
+          "type": "number",
+          "default": 256,
+          "description": "The max number of generated tokens.",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "coco.delay": {
+          "type": "number",
+          "default": 250,
+          "description": "The completion request deply in milliseconds (0 - no delay, -1 - no completions.",
+          "minimum": -1,
+          "maximum": 5000
+        },
+        "coco.temperature": {
+          "type": "number",
+          "default": 0.2,
+          "description": "The temperature of the model. Boosting results in more creatively.",
+          "minimum": 0,
+          "maximum": 2
         }
       }
     },

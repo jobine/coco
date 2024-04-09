@@ -8,7 +8,6 @@ type Logger = {
 
 let logger: Logger | null = null;
 
-// registerLogger(vscode.window.createOutputChannel('Llama Coder', { log: true }));
 export function registerLogger(channel: vscode.LogOutputChannel) {
     logger = channel;
 }

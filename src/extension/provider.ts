@@ -1,10 +1,15 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
-import { getConfigValue } from '../util/vscode';
+import { getConfigValue, isSupported } from '../util/vscode';
+import { info } from '../util/log'
+import { AsyncLock } from '../util/lock';
+
+const lock = new AsyncLock();
 
 function preprocessMessageHeader(document: vscode.TextDocument) {
-    const config = vscode.workspace.getConfiguration('coco');
-    const messageHeader = config.get<string>('messageHeader') || '';
+    // const config = vscode.workspace.getConfiguration('coco');
+    // const messageHeader = config.get<string>('messageHeader') || '';
+    const messageHeader = getConfigValue<string>('messageHeader');
     const res = messageHeader
                 .replace('{LANG}', document.languageId)
                 .replace('{FILE_NAME}', document.fileName)
@@ -24,11 +29,11 @@ async function provideCompletionItems(document: vscode.TextDocument, position: v
     let responsePreviewMaxTokens = 1000;
     let temperature = 0.5;
 
-    const config = vscode.workspace.getConfiguration('coco');
+    // const config = vscode.workspace.getConfiguration('coco');
     // const apiEndpoint = config.get<string>('endpoint') || 'http://localhost:11434';
     // const apiEndpoint = config.get<string>('endponit') as string;
     const apiEndpoint = getConfigValue<string>('endpoint');
-    const apiModel = config.get<string>('model') || 'gemma:7b';
+    const apiModel = getConfigValue<string>('model');
 
     // wait before initializing ollama to reduce compute usage.
     if (responsePreview) {
@@ -91,7 +96,39 @@ async function provideCompletionItems(document: vscode.TextDocument, position: v
     return [item];
 }
 
+async function delayCompletion(delayInMillis: number, cancellationToken: vscode.CancellationToken): Promise<boolean> {
+    if (delayInMillis < 0) {
+        return false;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, delayInMillis));
+
+    if (cancellationToken.isCancellationRequested) {
+        return false;
+    }
+
+    return true;
+}
+
 async function provideInlineCompletionItems(document: vscode.TextDocument, position: vscode.Position, context: vscode.InlineCompletionContext, cancellationToken: vscode.CancellationToken): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList | undefined> {
+    if (!getConfigValue<boolean>('enableAutoComplete')) {
+        return ;
+    }
+
+    if (!isSupported(document)) {
+        info(`Unsupported document: ${document.uri.toString()} ignored.`);
+    }
+
+    // delay completion
+    const delayInMillis = getConfigValue<number>('delay');
+    if (!await delayCompletion(delayInMillis, cancellationToken)) {
+        return ;
+    }
+
+    try {
+
+    }
+
     return undefined;
 }
 
