@@ -4,6 +4,7 @@ import { getConfigValue, isSupported } from '../util/vscode';
 import { info, warn } from '../util/log';
 import { AsyncLock } from '../util/lock';
 import { LanguageDescriptor, detectLanguage, comment, languages } from './language';
+import { setupStatusBar, stopStatusBarLoading } from './statusBar';
 
 const lock = new AsyncLock();
 
@@ -156,6 +157,8 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
         info(`Unsupported document: ${document.uri.toString()} ignored.`);
     }
 
+    setupStatusBar(true, true);
+    
     // delay completion
     const delayInMillis = getConfigValue<number>('delay');
     if (!await delayCompletion(delayInMillis, cancellationToken)) {
@@ -183,6 +186,8 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
         });
     } catch (e) {
         warn('Error inline completion: ', e);
+    } finally {
+        // stopStatusBarLoading();
     }
 
     return undefined;

@@ -62,7 +62,7 @@
         },
         "coco.delay": {
           "type": "number",
-          "default": 250,
+          "default": 2500,
           "description": "The completion request deply in milliseconds (0 - no delay, -1 - no completions.",
           "minimum": -1,
           "maximum": 5000

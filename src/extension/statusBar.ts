@@ -13,7 +13,7 @@ export function stopStatusBarLoading() {
 }
 
 export function setupStatusBar(enabled: boolean | undefined, loading?: boolean) {
-    if (loading !== false) {
+    if (loading === true) {
         clearTimeout(statusBarFalseTimeout);
         statusBarFalseTimeout = undefined;
     }
