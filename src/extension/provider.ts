@@ -3,6 +3,7 @@ import axios from 'axios';
 import { getConfigValue, isSupported } from '../util/vscode';
 import { info, warn } from '../util/log';
 import { AsyncLock } from '../util/lock';
+import { LanguageDescriptor, detectLanguage, comment, languages } from './language';
 
 const lock = new AsyncLock();
 
@@ -16,6 +17,42 @@ function preprocessMessageHeader(document: vscode.TextDocument) {
                 .replace('{PROJECT_NAME}', vscode.workspace.name || 'Untitled');
 
     return res;
+}
+
+function fileHeader(content: string, filepath: string, languageDescriptor: LanguageDescriptor | undefined) : string {
+    let res = content;
+
+    if (languageDescriptor) {
+        let pathMarker = comment(`Path: ${filepath}`, languageDescriptor);
+        if (pathMarker) {
+            res = pathMarker + '\n' + res;
+        }
+
+        let typeMarker = comment(`Language: ${languageDescriptor.name}`, languageDescriptor);
+        if (typeMarker) {
+            res = typeMarker + '\n' + res;
+        }
+    }
+
+    return res;
+}
+
+async function preparePrompt(document: vscode.TextDocument, position: vscode.Position, context: vscode.InlineCompletionContext) {
+    let text = document.getText();
+    let offset = document.offsetAt(position);
+    let prefix = text.slice(0, offset);
+    let suffix = text.slice(offset);
+
+    let language = detectLanguage(document);
+    
+    if (language) {
+        prefix = fileHeader(prefix, document.uri.fsPath, languages[language]);
+    }
+
+    return {
+        prefix,
+        suffix
+    };
 }
 
 async function provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, cancellationToken: vscode.CancellationToken) {
@@ -131,10 +168,18 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
         }
 
         return await lock.inLock(async () => {
-            let prepared = 
+            let prepared = await preparePrompt(document, position, context);
             if (cancellationToken.isCancellationRequested) {
                 return ;
             }
+
+            // TODO: Test code.
+            let completions: string | undefined = '# Test Code Generation\n def test():\n\tpass\n\n```';
+
+            return [{
+                insertText: completions,
+                range: new vscode.Range(position, position)
+            }];
         });
     } catch (e) {
         warn('Error inline completion: ', e);
@@ -145,10 +190,18 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
 
 export function registerProviders(context: vscode.ExtensionContext) {
     // Register the completion provider
-    const completionProvider = vscode.languages.registerCompletionItemProvider('*', {
-        provideCompletionItems
-    },
-        ' '// TODO: ...completionKeys.split('')
+    // const completionProvider = vscode.languages.registerCompletionItemProvider('*', {
+    //     provideCompletionItems
+    // },
+    //     ' '// TODO: ...completionKeys.split('')
+    // );
+    // context.subscriptions.push(completionProvider);
+
+    // Register the inline completion provider
+    const inlineCompletionProvider = vscode.languages.registerInlineCompletionItemProvider(
+        { pattern: '**' },
+        { provideInlineCompletionItems }
     );
-    context.subscriptions.push(completionProvider);
+
+    context.subscriptions.push(inlineCompletionProvider);
 }
