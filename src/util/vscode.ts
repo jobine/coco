@@ -29,18 +29,18 @@ export function getLogPath(): string {
     return logPath;
 }
 
-export function getConfigValue<T>(key: string, defaultValue?: T, ns: string = 'coco') {
-    const config = vscode.workspace.getConfiguration(ns);
-    const value = config.get<T>(key);
+// export function getConfigValue<T>(key: string, defaultValue?: T, ns: string = 'coco') {
+//     const config = vscode.workspace.getConfiguration(ns);
+//     const value = config.get<T>(key);
 
-    return value || defaultValue as T;
-}
+//     return value || defaultValue as T;
+// }
 
-export function updateConfigValue(key: string, value: boolean | string, ns: string = 'coco') {
-    const config = vscode.workspace.getConfiguration(ns);
+// export function updateConfigValue(key: string, value: boolean | string, ns: string = 'coco') {
+//     const config = vscode.workspace.getConfiguration(ns);
 
-    config.update(key, value, vscode.ConfigurationTarget.Global);
-}
+//     config.update(key, value, vscode.ConfigurationTarget.Global);
+// }
 
 export function isSupported(doc: vscode.TextDocument) {
     return doc.uri.scheme in ['file', 'vscode-notebook-cell', 'vscode-remote'];

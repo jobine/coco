@@ -32,14 +32,14 @@
     "configuration": {
       "title": "Code Copilot",
       "properties": {
-        "coco.enableAutoComplete": {
+        "coco.enableAutocomplete": {
           "type": "boolean",
           "default": true,
           "description": "Enable CoCo's autocomplete feature via Tab."
         },
         "coco.endpoint": {
           "type": "string",
-          "default": "http://localhost:11434/api/generate",
+          "default": "http://localhost:11434",
           "description": "The endpoint of the ollama REST API."
         },
         "coco.model": {

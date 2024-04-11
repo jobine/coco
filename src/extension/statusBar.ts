@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { config } from './config';
 
 const statusBarItemText = (enabled: boolean | undefined) => enabled ? '$(rocket) CoCo' : '$(circle-slash) CoCo';
 const statusBarItemTooltip = (enabled: boolean | undefined) => enabled ? 'CoCo Autocomplete is enabled.' : 'Click to enable CoCo Autocomplete.';
@@ -34,11 +35,7 @@ export function setupStatusBar(enabled: boolean | undefined, loading?: boolean) 
 
     vscode.workspace.onDidChangeConfiguration((event) => {
         if (event.affectsConfiguration('coco')) {
-            const config = vscode.workspace.getConfiguration('coco');
-            const enabled = config.get<boolean>('enableAutoComplete');
-
-            statusBarItem.dispose();
-            setupStatusBar(enabled);
+            setupStatusBar(config.enableAutocomplete);
         }
     });
 }

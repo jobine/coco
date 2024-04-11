@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getLogPath, getConfigValue, updateConfigValue } from '../util/vscode';
+import { config } from './config';
+import { getLogPath } from '../util/vscode';
 
 const commandsMap: (
     context: vscode.ExtensionContext
@@ -21,8 +22,7 @@ const commandsMap: (
         vscode.commands.executeCommand('workbench.action.openSettings', '@ext:mingzhao.coco');
     },
     'coco.toggleAutocomplete': () => {
-        const enabled = getConfigValue<boolean>('enableAutoComplete');
-        updateConfigValue('enableAutoComplete', !enabled);
+        config.enableAutocomplete = !config.enableAutocomplete;
     },
 });
 
