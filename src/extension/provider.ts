@@ -3,9 +3,9 @@ import { isSupported } from '../util/vscode';
 import { info, warn } from '../util/log';
 import { AsyncLock } from '../util/lock';
 import { LanguageDescriptor, detectLanguage, comment, languages } from './language';
-import { setupStatusBar, stopStatusBarLoading } from './statusBar';
+import { StatusBarState, setupStatusBar, resetStatusBar } from './statusBar';
 import { config } from './config';
-import { checkModel } from '../model/model';
+import { checkModel, downloadModel } from '../model/model';
 
 const lock = new AsyncLock();
 
@@ -64,17 +64,38 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
         return ;
     }
 
-    if (!isSupported(document)) {
-        info(`Unsupported document: ${document.uri.toString()} ignored.`);
+    let modelExists = await checkModel(config.model);
+
+    if (!modelExists) {
+        // Ask for downloding
+        let download = await vscode.window.showInformationMessage(`Model '${config.model}' doesn't exist, click 'Yes' to download.`, 'Yes', 'No');
+        if (download === 'No') {
+            info('Ignore downloading model since user abandoned.');
+            return ;
+        }
+
+        try {
+            setupStatusBar(StatusBarState.Downloading);
+            await downloadModel(config.model);
+        } catch (e) {
+            warn('Error in downloading model: ', e);
+        } finally {
+            resetStatusBar();
+        }
     }
 
-    setupStatusBar(true, true);
-    
-    if (!await delayCompletion(config.delay, cancellationToken)) {
-        return ;
+    if (!isSupported(document)) {
+        info(`Unsupported document: ${document.uri.toString()} ignored.`);
+        return;
     }
 
     try {
+        setupStatusBar(StatusBarState.Loading);
+    
+        if (!await delayCompletion(config.delay, cancellationToken)) {
+            return ;
+        }
+
         if (cancellationToken.isCancellationRequested) {
             return ;
         }
@@ -94,20 +115,11 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
             if (!!cache) {
                 completions = cache;
             } else {
-                let modelExists = await checkModel(config.model);
 
-                if (!modelExists) {
-                    // Ask for downloding
-                    vscode.window.showInformationMessage(`Model ${config.model} doesn't exist, Answering "Yes" to download the model.`, 'Yes', 'No').then(selection => {
-                        if (selection === 'Yes') {
-                            
-                        }
-                    });
-                }
             }
             
             // checkModel(config.model);
-            // let completions: string | undefined = '# Test Code Generation\n def test():\n\tpass\n\n```';
+            completions = '# Test Code Generation\n def test():\n\tpass\n\n```';
 
             return [{
                 insertText: completions,
@@ -117,7 +129,7 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
     } catch (e) {
         warn('Error inline completion: ', e);
     } finally {
-        stopStatusBarLoading();
+        resetStatusBar();
     }
 
     return undefined;

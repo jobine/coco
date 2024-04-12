@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { registerCommands } from './commands';
 import { registerProviders } from './provider';
 import { setupStatusBar } from './statusBar';
-import { config } from './config';
 
 export class CocoExtension {
     private context: vscode.ExtensionContext;
@@ -12,7 +11,7 @@ export class CocoExtension {
     }
 
     public initialize(): void {
-        setupStatusBar(config.enableAutocomplete);
+        setupStatusBar();
 
         this.register();
     }

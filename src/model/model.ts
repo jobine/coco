@@ -1,7 +1,6 @@
 import { info, warn } from '../util/log';
 import { config } from '../extension/config';
 import { URL } from 'url';
-import fs from 'fs';
 
 export async function listModels(): Promise<string[]> {
     let url = new URL('api/tags', config.endpoint).href;
@@ -38,12 +37,29 @@ export async function downloadModel(model: string) {
             name: model,
             insecure: false,
             stream: true
-        })
+        }),
     });
 
-    if (res.ok) {
-        const filestream = fs.createWriteStream(model);
-        res.body?.pipeThrough(filestream);
+    if (!!res.ok && !!res.body) {
+        const decoder = new TextDecoder();
+        let reader = res.body.getReader();
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) {
+                    break;
+                }
+            }
+        } finally {
+            reader?.releaseLock();
+
+            if (!reader?.closed) {
+                await reader?.cancel();
+            }
+        }
+
     } else {
         warn(await res.text());
     }
