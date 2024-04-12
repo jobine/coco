@@ -5,6 +5,7 @@ import { AsyncLock } from '../util/lock';
 import { LanguageDescriptor, detectLanguage, comment, languages } from './language';
 import { setupStatusBar, stopStatusBarLoading } from './statusBar';
 import { config } from './config';
+import { checkModel } from '../model/model';
 
 const lock = new AsyncLock();
 
@@ -84,8 +85,29 @@ async function provideInlineCompletionItems(document: vscode.TextDocument, posit
                 return ;
             }
 
-            // TODO: Test code.
-            let completions: string | undefined = '# Test Code Generation\n def test():\n\tpass\n\n```';
+            // completions
+            let completions: string | undefined = undefined;
+
+            // TODO: check if in cache
+            let cache = null;
+
+            if (!!cache) {
+                completions = cache;
+            } else {
+                let modelExists = await checkModel(config.model);
+
+                if (!modelExists) {
+                    // Ask for downloding
+                    vscode.window.showInformationMessage(`Model ${config.model} doesn't exist, Answering "Yes" to download the model.`, 'Yes', 'No').then(selection => {
+                        if (selection === 'Yes') {
+                            
+                        }
+                    });
+                }
+            }
+            
+            // checkModel(config.model);
+            // let completions: string | undefined = '# Test Code Generation\n def test():\n\tpass\n\n```';
 
             return [{
                 insertText: completions,

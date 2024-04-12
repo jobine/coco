@@ -43,5 +43,5 @@ export function getLogPath(): string {
 // }
 
 export function isSupported(doc: vscode.TextDocument) {
-    return doc.uri.scheme in ['file', 'vscode-notebook-cell', 'vscode-remote'];
+    return ['file', 'vscode-notebook-cell', 'vscode-remote'].includes(doc.uri.scheme);
 }
