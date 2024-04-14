@@ -1,35 +1,39 @@
 import * as vscode from 'vscode';
 import { config } from './config';
 
-const enableItemText = (enabled: boolean | undefined) => enabled ? '$(rocket) CoCo' : '$(circle-slash) CoCo';
-const loadingItemText = (state: StatusBarState) => state === StatusBarState.Loading ? '$(loading~spin) CoCo' : enableItemText(config.enableAutocomplete);
-const downloadingItemText = (state: StatusBarState) => state === StatusBarState.Downloading ? '$(gear~spin) Pulling model - CoCo' : loadingItemText(state);
-
-let lastStatusBarItem: vscode.StatusBarItem | undefined = undefined;
-let statusBarFalseTimeout: NodeJS.Timeout | undefined = undefined;
-
 export enum StatusBarState {
     None,
     Loading,
     Downloading
 }
 
-export function resetStatusBar() {
+const enableItemText = (enabled: boolean | undefined) => enabled ? `$(rocket) ${config.model} - CoCo` : '$(circle-slash) CoCo';
+const loadingItemText = (state: StatusBarState) => state === StatusBarState.Loading ? `$(loading~spin) ${config.model} - CoCo` : enableItemText(config.enableAutocomplete);
+const downloadingItemText = (state: StatusBarState) => state === StatusBarState.Downloading ? `$(gear~spin) Pulling model ${config.model} - CoCo` : loadingItemText(state);
+
+let lastStatusBarItem: vscode.StatusBarItem | undefined = undefined;
+let statusBarFalseTimeout: NodeJS.Timeout | undefined = undefined;
+let statusBarState: StatusBarState = StatusBarState.None;
+
+export function refreshStatusBar() {
     statusBarFalseTimeout = setTimeout(() => {
-        setupStatusBar();
+        console.log('refresh status bar.');
+        setupStatusBar(statusBarState);
     }, 100);
 }
 
 export function setupStatusBar(state: StatusBarState = StatusBarState.None) {
-    if (state === StatusBarState.Loading) {
+    statusBarState = state;
+
+    if (statusBarState === StatusBarState.Loading) {
         clearTimeout(statusBarFalseTimeout);
         statusBarFalseTimeout = undefined;
     }
 
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 
-    statusBarItem.text = downloadingItemText(state);
-    statusBarItem.command = 'coco.toggleAutocomplete';
+    statusBarItem.text = downloadingItemText(statusBarState);
+    statusBarItem.command = 'coco.openSettings';
 
     if (lastStatusBarItem) {
         lastStatusBarItem.dispose();
@@ -38,10 +42,4 @@ export function setupStatusBar(state: StatusBarState = StatusBarState.None) {
     statusBarItem.show();
 
     lastStatusBarItem = statusBarItem;
-
-    vscode.workspace.onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration('coco')) {
-            setupStatusBar(state);
-        }
-    });
 }

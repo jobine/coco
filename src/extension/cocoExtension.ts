@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import { registerCommands } from './commands';
-import { registerProviders } from './provider';
-import { setupStatusBar } from './statusBar';
+import { commandsMap } from './commands';
+import { CocoInlineCompletionItemProvider } from './provider';
+import { setupStatusBar, refreshStatusBar } from './statusBar';
+import { config } from './config';
 
 export class CocoExtension {
     private context: vscode.ExtensionContext;
@@ -13,11 +14,34 @@ export class CocoExtension {
     public initialize(): void {
         setupStatusBar();
 
-        this.register();
+        this.#registerCommands(this.context);
+        this.#registerProviders(this.context);
+
+        vscode.workspace.onDidChangeConfiguration((event) => {
+            config.refresh();
+
+            if (event.affectsConfiguration('coco')) {
+                refreshStatusBar();
+            }
+        });
     }
 
-    private register(): void {
-        registerCommands(this.context);
-        registerProviders(this.context);
+    #registerProviders(context: vscode.ExtensionContext) {
+        // Register the inline completion provider
+        const inlineCompletionProvider = vscode.languages.registerInlineCompletionItemProvider(
+            { pattern: '**' },
+            new CocoInlineCompletionItemProvider(context)
+        );
+    
+        context.subscriptions.push(inlineCompletionProvider);
+    }
+
+    #registerCommands(context: vscode.ExtensionContext) {
+        const commands = commandsMap(context);
+        for (const [command, handler] of Object.entries(commands)) {
+            context.subscriptions.push(
+                vscode.commands.registerCommand(command, handler)
+            );
+        }
     }
 }

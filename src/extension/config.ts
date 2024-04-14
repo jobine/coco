@@ -1,78 +1,79 @@
 import vscode from 'vscode';
 
 class Config {
-    private _enableAutocomplete: boolean = false;
-    private _endpoint: string = '';
-    private _model: string = '';
-    private _maxTokens: number = 0;
-    private _delay: number = 0;
-    private _temperature: number = 0;
-
+    #enableAutocomplete: boolean = false;
+    #endpoint: string = '';
+    #model: string = '';
+    #maxTokens: number = 0;
+    #delay: number = 0;
+    #temperature: number = 0;
 
     constructor() {
+        this.refresh();
+    }
+
+    public refresh() {
         let config = vscode.workspace.getConfiguration('coco');
 
-        this._enableAutocomplete = config.get<boolean>('enableAutocomplete') || false;
-        this._endpoint = config.get<string>('endpoint') || '';
-        this._model = config.get<string>('model') || '';
-        this._maxTokens = config.get<number>('maxTokens') || 0;
-        this._delay = config.get<number>('delay') || 0;
-        this._temperature = config.get<number>('temperature') || 0;
-
-        console.log('Config initialized.');
+        this.#enableAutocomplete = config.get<boolean>('enableAutocomplete') || false;
+        this.#endpoint = config.get<string>('endpoint') || '';
+        this.#model = config.get<string>('model') || '';
+        this.#maxTokens = config.get<number>('maxTokens') || 0;
+        this.#delay = config.get<number>('delay') || 0;
+        this.#temperature = config.get<number>('temperature') || 0;
     }
 
     public get enableAutocomplete() {
-        return this._enableAutocomplete;
+        return this.#enableAutocomplete;
     }
 
     public set enableAutocomplete(value: boolean) {
-        this._enableAutocomplete = value;
+        this.#enableAutocomplete = value;
         this.#update('enableAutocomplete', value);
     }
 
     public get endpoint() {
-        return this._endpoint;
+        return this.#endpoint;
     }
 
     public set endpoint(value: string) {
-        this._endpoint = value;
+        this.#endpoint = value;
         this.#update('endpoint', value);
     }
 
     public get model() {
-        return this._model;
+        return this.#model;
     }
 
     public set model(value: string) {
-        this._model = value;
+        this.#model = value;
         this.#update('model', value);
     }
 
     public get maxTokens() {
-        return this._maxTokens;
+        return this.#maxTokens;
     }
 
     public set maxTokens(value: number) {
-        this._maxTokens = value;
+        this.#maxTokens = value;
         this.#update('maxTokens', value);
     }
 
     public get delay() {
-        return this._delay;
+        return this.#delay;
     }
 
     public set delay(value: number) {
-        this._delay = value;
+        this.#delay = value;
         this.#update('delay', value);
     }
 
     public get temperature() {
-        return this._temperature;
+        return this.#temperature;
     }
 
     public set temperature(value: number) {
-        this._temperature = value;
+        this.#temperature = value;
         this.#update('temperature', value);
     }
 

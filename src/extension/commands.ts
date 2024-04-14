@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import { config } from './config';
 import { getLogPath } from '../util/vscode';
 
-const commandsMap: (
+export const commandsMap: (
     context: vscode.ExtensionContext
 ) => {[command: string]: (...args: any) => any} = (context) => ({
     'coco.viewLogs': async () => {
@@ -25,13 +25,3 @@ const commandsMap: (
         config.enableAutocomplete = !config.enableAutocomplete;
     },
 });
-
-
-export function registerCommands(context: vscode.ExtensionContext) {
-    const commands = commandsMap(context);
-    for (const [command, handler] of Object.entries(commands)) {
-        context.subscriptions.push(
-            vscode.commands.registerCommand(command, handler)
-        );
-    }
-}
