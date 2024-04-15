@@ -5,7 +5,8 @@ import { AsyncLock } from '../util/lock';
 import { LanguageDescriptor, detectLanguage, comment, languages } from '../model/language';
 import { StatusBarState, setupStatusBar, refreshStatusBar } from './statusBar';
 import { config } from './config';
-import { checkModel, downloadModel, generateCode } from '../model/model';
+import { checkModel, downloadModel } from '../model/model';
+import { getModelTemplate } from '../model/templates';
 
 export class CocoInlineCompletionItemProvider implements vscode.InlineCompletionItemProvider {
     #lock: AsyncLock;
@@ -34,7 +35,7 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
         return res;
     }
 
-    async #preparePrompt(document: vscode.TextDocument, position: vscode.Position, inlineCompletinoContext: vscode.InlineCompletionContext) {
+    #preparePrompt(document: vscode.TextDocument, position: vscode.Position, inlineCompletinoContext: vscode.InlineCompletionContext) {
         let text = document.getText();
         let offset = document.offsetAt(position);
         let prefix = text.slice(0, offset);
@@ -64,6 +65,16 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
         }
     
         return true;
+    }
+
+    async #generateCompletion(prefix: string, suffix: string, canceled: boolean): Promise<string> {
+        const { template, completionOptions } = getModelTemplate(config.model);
+    
+        const prompt = template({prefix: prefix, suffix: suffix, snippets: []});
+    
+        
+        
+        return '# Test Code Generation\n def test():\n\tpass\n\n';
     }
 
     async provideInlineCompletionItems(document: vscode.TextDocument, position: vscode.Position, context: vscode.InlineCompletionContext, cancellationToken: vscode.CancellationToken): Promise<vscode.InlineCompletionList | vscode.InlineCompletionItem[] | undefined> {
@@ -136,7 +147,7 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
                 }
                 
                 // checkModel(config.model);
-                completions = await generateCode(prepared.suffix, prepared.suffix, cancellationToken.isCancellationRequested);
+                completions = await this.#generateCompletion(prepared.prefix, prepared.suffix, cancellationToken.isCancellationRequested);
     
                 return [{
                     insertText: completions,

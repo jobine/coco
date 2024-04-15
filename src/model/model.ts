@@ -65,6 +65,4 @@ export async function downloadModel(model: string) {
     }
 }
 
-export async function generateCode(prefix: string, suffix: string, canceled: boolean): Promise<string> {
-    return '# Test Code Generation\n def test():\n\tpass\n\n';
-}
+// export async function generate(prompt: string, stop: string):  

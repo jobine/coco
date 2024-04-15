@@ -5,9 +5,7 @@ import * as fs from 'fs';
 import { config } from './config';
 import { getLogPath } from '../util/vscode';
 
-export const commandsMap: (
-    context: vscode.ExtensionContext
-) => {[command: string]: (...args: any) => any} = (context) => ({
+export const commandsMap: (context: vscode.ExtensionContext) => {[command: string]: (...args: any) => any} = (context) => ({
     'coco.viewLogs': async () => {
         const logUri = vscode.Uri.file(getLogPath());
         await vscode.window.showTextDocument(logUri);
