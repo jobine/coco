@@ -5,7 +5,7 @@ import { AsyncLock } from '../util/lock';
 import { LanguageDescriptor, detectLanguage, comment, languages } from '../model/language';
 import { StatusBarState, setupStatusBar, refreshStatusBar } from './statusBar';
 import { config } from './config';
-import { checkModel, downloadModel } from '../model/model';
+import { checkModel, downloadModel, generate } from '../model/model';
 import { getModelTemplate } from '../model/templates';
 
 export class CocoInlineCompletionItemProvider implements vscode.InlineCompletionItemProvider {
@@ -67,12 +67,23 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
         return true;
     }
 
-    async #generateCompletion(prefix: string, suffix: string, canceled: boolean): Promise<string> {
+    async #generateCompletion(prefix: string, suffix: string, canceled: Function): Promise<string> {
         const { template, completionOptions } = getModelTemplate(config.model);
     
         const prompt = template({prefix: prefix, suffix: suffix, snippets: []});
     
-        
+        // Receive tokens
+        let res = '';
+        let totalLines = 1;
+        let blockStack: ('(' | '[' | '{')[] = [];
+
+        outer: for await (let tokens of generate(prompt, completionOptions.stop)) {
+            if (canceled && canceled()) {
+                break;
+            }
+
+            console.log('line: ' + tokens.response);
+        }
         
         return '# Test Code Generation\n def test():\n\tpass\n\n';
     }
@@ -147,7 +158,7 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
                 }
                 
                 // checkModel(config.model);
-                completions = await this.#generateCompletion(prepared.prefix, prepared.suffix, cancellationToken.isCancellationRequested);
+                completions = await this.#generateCompletion(prepared.prefix, prepared.suffix, () => cancellationToken.isCancellationRequested);
     
                 return [{
                     insertText: completions,

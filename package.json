@@ -63,14 +63,14 @@
         "coco.delay": {
           "type": "number",
           "default": 250,
-          "description": "The completion request deply in milliseconds (0: no delay, -1: no completions).",
+          "description": "The completion request deply in milliseconds. (0: no delay, -1: no completions)",
           "minimum": -1,
           "maximum": 5000
         },
         "coco.temperature": {
           "type": "number",
-          "default": 0.2,
-          "description": "The temperature of the model. Boosting results in more creatively.",
+          "default": 0.8,
+          "description": "The temperature of the model. Increasing the temperature will make the model answer more creatively.",
           "minimum": 0,
           "maximum": 2
         }
