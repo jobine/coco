@@ -3,6 +3,7 @@ import { commandsMap } from './commands';
 import { CocoInlineCompletionItemProvider } from './provider';
 import { setupStatusBar, refreshStatusBar } from './statusBar';
 import { config } from './config';
+import { registerLogger } from '../util/log';
 
 export class CocoExtension {
     private context: vscode.ExtensionContext;
@@ -12,10 +13,12 @@ export class CocoExtension {
     }
 
     public initialize(): void {
+        registerLogger(vscode.window.createOutputChannel('Code Copilot', { log: true }));
+
         setupStatusBar();
 
-        this.#registerCommands(this.context);
-        this.#registerProviders(this.context);
+        this.registerCommands(this.context);
+        this.registerProviders(this.context);
 
         vscode.workspace.onDidChangeConfiguration((event) => {
             config.refresh();
@@ -26,7 +29,7 @@ export class CocoExtension {
         });
     }
 
-    #registerProviders(context: vscode.ExtensionContext) {
+    registerProviders(context: vscode.ExtensionContext) {
         // Register the inline completion provider
         const inlineCompletionProvider = vscode.languages.registerInlineCompletionItemProvider(
             { pattern: '**' },
@@ -36,7 +39,7 @@ export class CocoExtension {
         context.subscriptions.push(inlineCompletionProvider);
     }
 
-    #registerCommands(context: vscode.ExtensionContext) {
+    registerCommands(context: vscode.ExtensionContext) {
         const commands = commandsMap(context);
         for (const [command, handler] of Object.entries(commands)) {
             context.subscriptions.push(

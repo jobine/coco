@@ -73,6 +73,11 @@
           "description": "The temperature of the model. Increasing the temperature will make the model answer more creatively.",
           "minimum": 0,
           "maximum": 2
+        },
+        "coco.enableCache": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable cache for completions."
         }
       }
     },

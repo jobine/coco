@@ -73,19 +73,77 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
         const prompt = template({prefix: prefix, suffix: suffix, snippets: []});
     
         // Receive tokens
+        const left_brackets = ['(', '[', '{'];
+        const right_brackets = [')', ']', '}'];
         let res = '';
         let totalLines = 1;
-        let blockStack: ('(' | '[' | '{')[] = [];
+        let blockStack: string[] = [];
 
-        outer: for await (let tokens of generate(prompt, completionOptions.stop)) {
+        for await (let tokens of generate(prompt, completionOptions.stop)) {
             if (canceled && canceled()) {
                 break;
             }
-
-            console.log('line: ' + tokens.response);
+            // info('generate: ' + tokens.response);
+            res += tokens.response;
         }
-        
-        return '# Test Code Generation\n def test():\n\tpass\n\n';
+
+        // outer: for await (let tokens of generate(prompt, completionOptions.stop)) {
+        //     if (canceled && canceled()) {
+        //         break;
+        //     }
+
+        //     console.log('line: ' + tokens.response);
+
+        //     for (let c of tokens.response) {
+        //         if (left_brackets.includes(c)) {
+        //             blockStack.push(c);
+        //         }
+
+        //         if (blockStack.length > 0) {
+        //             if (c === ')') {
+        //                 if (blockStack[blockStack.length - 1] === '(') {
+        //                     blockStack.pop();
+        //                 } else {
+        //                     info('Block stack error, breaking.');
+        //                     break outer;
+        //                 }
+        //             }
+
+        //             if (c === ']') {
+        //                 if (blockStack[blockStack.length - 1] === '[') {
+        //                     blockStack.pop();
+        //                 } else {
+        //                     info('Block stack error, breaking.');
+        //                     break outer;
+        //                 }
+        //             }
+
+        //             if (c === '}') {
+        //                 if (blockStack[blockStack.length - 1] === '{') {
+        //                     blockStack.pop();
+        //                 } else {
+        //                     info('Block stack error, breaking.');
+        //                     break outer;
+        //                 }
+        //             }
+        //         } else {
+        //             info('Block stack error, breaking.');
+        //             break outer;
+        //         }
+
+        //         res += c;
+        //     }
+        // }
+
+        // Remove <EOT>
+        if (res.endsWith('<EOT>')) {
+            res = res.slice(0, res.length - 5);
+        }
+
+        // Trim ends of all lines since sometimes the AI completion will add extra spaces
+        res = res.split('\n').map((v) => v.trimEnd()).join('\n');
+
+        return res;
     }
 
     async provideInlineCompletionItems(document: vscode.TextDocument, position: vscode.Position, context: vscode.InlineCompletionContext, cancellationToken: vscode.CancellationToken): Promise<vscode.InlineCompletionList | vscode.InlineCompletionItem[] | undefined> {
@@ -120,6 +178,11 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
                 setupStatusBar();
             }
         }
+
+        if (cancellationToken.isCancellationRequested) {
+            info('Canceled completion request.');
+            return ;
+        }
     
         // check document schema matched
         if (!isSupported(document)) {
@@ -129,41 +192,50 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
     
         // completion generating
         try {
-            setupStatusBar(StatusBarState.Loading);
+             setupStatusBar(StatusBarState.Loading);
         
             if (!await this.#delayCompletion(config.delay, cancellationToken)) {
                 return ;
             }
     
             if (cancellationToken.isCancellationRequested) {
+                info('Canceled completion request.');
                 return ;
             }
     
             return await this.#lock.inLock(async () => {
                 let prepared = await this.#preparePrompt(document, position, context);
+
                 if (cancellationToken.isCancellationRequested) {
+                    info('Canceled completion request.');
                     return ;
                 }
     
                 // completions
-                let completions: string | undefined = undefined;
+                let completion: string | undefined = undefined;
     
-                // TODO: check if in cache
-                let cache = null;
+                // TODO: need check cache
+                let cache = config.enableCache ? null : null;
     
                 if (!!cache) {
-                    completions = cache;
+                    completion = cache;
                 } else {
-    
+                    completion = await this.#generateCompletion(prepared.prefix, prepared.suffix, () => cancellationToken.isCancellationRequested);
+                    info(`Completion: ${completion}`);
+                    // TODO: update cache
                 }
-                
-                // checkModel(config.model);
-                completions = await this.#generateCompletion(prepared.prefix, prepared.suffix, () => cancellationToken.isCancellationRequested);
-    
-                return [{
-                    insertText: completions,
-                    range: new vscode.Range(position, position)
-                }];
+
+                if (cancellationToken.isCancellationRequested) {
+                    info('Canceled completion request.');
+                    return ;
+                }
+
+                if (completion && completion.trim() !== '') {
+                    return [{
+                        insertText: completion,
+                        range: new vscode.Range(position, position)
+                    }];
+                }
             });
         } catch (e) {
             warn('Error inline completion: ', e);

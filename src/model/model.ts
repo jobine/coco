@@ -129,12 +129,14 @@ export async function* generateLine(prompt: string, stop?: string[]): AsyncGener
                 pending += chunk;
 
                 // yield results
+                yield pending;
+                pending = '';
                 
-                while (pending.indexOf('\n') >= 0) {
-                    let offset = pending.indexOf('\n');
-                    yield pending.slice(0, offset);
-                    pending = pending.slice(offset + 1);
-                }
+                // while (pending.indexOf('\n') >= 0) {
+                //     let offset = pending.indexOf('\n');
+                //     yield pending.slice(0, offset);
+                //     pending = pending.slice(offset + 1);
+                // }
             }
         } finally {
             reader?.releaseLock();

@@ -7,6 +7,7 @@ class Config {
     #maxTokens: number = 0;
     #delay: number = 0;
     #temperature: number = 0;
+    #enableCache: boolean = false;
 
     constructor() {
         this.refresh();
@@ -21,6 +22,7 @@ class Config {
         this.#maxTokens = config.get<number>('maxTokens') || 0;
         this.#delay = config.get<number>('delay') || 0;
         this.#temperature = config.get<number>('temperature') || 0;
+        this.#enableCache = config.get<boolean>('enableCache') || false;
     }
 
     public get enableAutocomplete() {
@@ -75,6 +77,15 @@ class Config {
     public set temperature(value: number) {
         this.#temperature = value;
         this.#update('temperature', value);
+    }
+
+    public get enableCache() {
+        return this.#enableCache;
+    }
+
+    public set enableCache(value: boolean) {
+        this.#enableCache = value;
+        this.#update('enableCache', value);
     }
 
     #update(key: string, value: any, section: string = 'coco') {
