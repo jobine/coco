@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import { activateExtension } from './activation/activate';
+import { error } from './util/log';
 
 async function dynamicActivate(context: vscode.ExtensionContext) {
 	// const {activateExtension} = await import('./activation/activate');
 
 	try {
 		await activateExtension(context);
-	} catch (error) {
-		console.log("Error activating extension: ", error);
+	} catch (e) {
+		error("Error activating extension: ", e);
 
 		vscode.window.showInformationMessage(
 			'Error activating the Coco extension.',

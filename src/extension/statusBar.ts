@@ -17,7 +17,6 @@ let statusBarState: StatusBarState = StatusBarState.None;
 
 export function refreshStatusBar() {
     statusBarFalseTimeout = setTimeout(() => {
-        console.log('refresh status bar.');
         setupStatusBar(statusBarState);
     }, 100);
 }

@@ -1,4 +1,4 @@
-import { info, warn } from '../util/log';
+import { info, warn, error } from '../util/log';
 import { config } from '../extension/config';
 import { URL } from 'url';
 
@@ -78,7 +78,7 @@ export async function* generate(prompt: string, stop?: string[]): AsyncGenerator
         try {
             parsed = JSON.parse(line) as CocoToken;
         } catch (e) {
-            warn('Received wrong line: ' + line, e);
+            error('Received wrong line: ' + line, e);
             continue;
         }
 

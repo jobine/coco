@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 type Logger = {
     info(message: string, ...args: any[]): void;
     warn(message: string, ...args: any[]): void;
-    // error(message: string, ...args: any[]): void;
+    error(message: string, ...args: any[]): void;
 };
 
 let logger: Logger | null = null;
@@ -21,5 +21,11 @@ export function info(message: string, ...args: any[]) {
 export function warn(message: string, ...args: any[]) {
     if (logger) {
         logger.warn(message, ...args);
+    }
+}
+
+export function error(message: string, ...args: any[]) {
+    if (logger) {
+        logger.error(message, ...args);
     }
 }

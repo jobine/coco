@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { isSupported } from '../util/vscode';
-import { info, warn } from '../util/log';
+import { info, error } from '../util/log';
 import { AsyncLock } from '../util/lock';
 import { LanguageDescriptor, detectLanguage, comment, languages } from '../model/language';
-import { StatusBarState, setupStatusBar, refreshStatusBar } from './statusBar';
+import { StatusBarState, setupStatusBar } from './statusBar';
 import { config } from './config';
 import { checkModel, downloadModel, generate } from '../model/model';
 import { getModelTemplate } from '../model/templates';
@@ -40,16 +40,25 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
         let offset = document.offsetAt(position);
         let prefix = text.slice(0, offset);
         let suffix = text.slice(offset);
-    
         let language = detectLanguage(document);
-        
+        let stopWords: string[] = [];
+
         if (language) {
+            let languageDescriptor = languages[language];
+            stopWords = languageDescriptor.stop || [];
             prefix = this.#fileHeader(prefix, document.uri.fsPath, languages[language]);
         }
+
+        const { template, completionOptions } = getModelTemplate(config.model);
+        const prompt = template({prefix: prefix, suffix: suffix, snippets: []});
+        const stop = [...stopWords, ...(completionOptions.stop || []), '\n\n', '/src/', '```'];
+
+        info(`Prompt: ${prompt}`);
+        info(`Stop: ${stop}`);
     
         return {
-            prefix,
-            suffix
+            prompt,
+            stop
         };
     }
 
@@ -67,19 +76,11 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
         return true;
     }
 
-    async #generateCompletion(prefix: string, suffix: string, canceled: Function): Promise<string> {
-        const { template, completionOptions } = getModelTemplate(config.model);
-    
-        const prompt = template({prefix: prefix, suffix: suffix, snippets: []});
-    
+    async #generateCompletion(prompt: string, stop: string[], canceled: Function): Promise<string> {
         // Receive tokens
-        const left_brackets = ['(', '[', '{'];
-        const right_brackets = [')', ']', '}'];
         let res = '';
-        let totalLines = 1;
-        let blockStack: string[] = [];
 
-        for await (let tokens of generate(prompt, completionOptions.stop)) {
+        for await (let tokens of generate(prompt, stop)) {
             if (canceled && canceled()) {
                 break;
             }
@@ -87,61 +88,13 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
             res += tokens.response;
         }
 
-        // outer: for await (let tokens of generate(prompt, completionOptions.stop)) {
-        //     if (canceled && canceled()) {
-        //         break;
-        //     }
-
-        //     console.log('line: ' + tokens.response);
-
-        //     for (let c of tokens.response) {
-        //         if (left_brackets.includes(c)) {
-        //             blockStack.push(c);
-        //         }
-
-        //         if (blockStack.length > 0) {
-        //             if (c === ')') {
-        //                 if (blockStack[blockStack.length - 1] === '(') {
-        //                     blockStack.pop();
-        //                 } else {
-        //                     info('Block stack error, breaking.');
-        //                     break outer;
-        //                 }
-        //             }
-
-        //             if (c === ']') {
-        //                 if (blockStack[blockStack.length - 1] === '[') {
-        //                     blockStack.pop();
-        //                 } else {
-        //                     info('Block stack error, breaking.');
-        //                     break outer;
-        //                 }
-        //             }
-
-        //             if (c === '}') {
-        //                 if (blockStack[blockStack.length - 1] === '{') {
-        //                     blockStack.pop();
-        //                 } else {
-        //                     info('Block stack error, breaking.');
-        //                     break outer;
-        //                 }
-        //             }
-        //         } else {
-        //             info('Block stack error, breaking.');
-        //             break outer;
-        //         }
-
-        //         res += c;
-        //     }
-        // }
-
         // Remove <EOT>
         if (res.endsWith('<EOT>')) {
             res = res.slice(0, res.length - 5);
         }
 
         // Trim ends of all lines since sometimes the AI completion will add extra spaces
-        res = res.split('\n').map((v) => v.trimEnd()).join('\n');
+        // res = res.split('\n').map((v) => v.trimEnd()).join('\n');
 
         return res;
     }
@@ -173,7 +126,7 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
                 setupStatusBar(StatusBarState.Downloading);
                 await downloadModel(config.model);
             } catch (e) {
-                warn('Error in downloading model: ', e);
+                error('Error in downloading model: ', e);
             } finally {
                 setupStatusBar();
             }
@@ -204,12 +157,7 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
             }
     
             return await this.#lock.inLock(async () => {
-                let prepared = await this.#preparePrompt(document, position, context);
-
-                if (cancellationToken.isCancellationRequested) {
-                    info('Canceled completion request.');
-                    return ;
-                }
+                let prepared = this.#preparePrompt(document, position, context);
     
                 // completions
                 let completion: string | undefined = undefined;
@@ -220,15 +168,15 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
                 if (!!cache) {
                     completion = cache;
                 } else {
-                    completion = await this.#generateCompletion(prepared.prefix, prepared.suffix, () => cancellationToken.isCancellationRequested);
+                    completion = await this.#generateCompletion(prepared.prompt, prepared.stop, () => cancellationToken.isCancellationRequested);
                     info(`Completion: ${completion}`);
                     // TODO: update cache
                 }
 
-                if (cancellationToken.isCancellationRequested) {
-                    info('Canceled completion request.');
-                    return ;
-                }
+                // if (cancellationToken.isCancellationRequested) {
+                //     info('Canceled completion request.');
+                //     return ;
+                // }
 
                 if (completion && completion.trim() !== '') {
                     return [{
@@ -238,7 +186,7 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
                 }
             });
         } catch (e) {
-            warn('Error inline completion: ', e);
+            error('Error inline completion: ', e);
         } finally {
             setupStatusBar();
         }

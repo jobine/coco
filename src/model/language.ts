@@ -32,7 +32,8 @@ export type LanguageDescriptor = {
     name: string,
     extensions: string[],
     filenames?: string[],
-    comment?: { start: string, end?: string }
+    comment?: { start: string, end?: string },
+    stop?: string[]
 };
 
 //
@@ -46,12 +47,14 @@ export const languages: { [key in Language]: LanguageDescriptor } = {
     typescript: {
         name: 'Typescript',
         extensions: ['.ts', '.tsx', '.cts', '.mts'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['function', 'class', 'module', 'export']
     },
     javascript: {
         name: 'Javascript',
         extensions: ['.js', '.jsx', '.cjs'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['function', 'class', 'module', 'export']
     },
     html: {
         name: 'HTML',
@@ -108,7 +111,8 @@ export const languages: { [key in Language]: LanguageDescriptor } = {
     python: {
         name: 'Python',
         extensions: ['.py', 'ipynb'],
-        comment: { start: '#' }
+        comment: { start: '#' },
+        stop: ['def', 'class']
     },
     c: {
         name: 'C',
