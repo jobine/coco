@@ -13,6 +13,7 @@ export type Language =
 
     // Generic languages that is popular in VS Code
     | 'java'
+    | 'scala'
     | 'kotlin'
     | 'swift'
     | 'objective-c'
@@ -22,6 +23,7 @@ export type Language =
     | 'cpp'
     | 'go'
     | 'php'
+    | 'csharp'
 
     // Shell
     | 'bat'
@@ -56,6 +58,12 @@ export const languages: { [key in Language]: LanguageDescriptor } = {
         comment: { start: '//' },
         stop: ['function', 'class', 'module', 'export']
     },
+    scala: {
+        name: 'Scala',
+        extensions: ['.scala', '.sc'],
+        comment: { start: '//' },
+        stop: ['def', 'val', 'var', 'class', 'object', 'trait']
+    },
     html: {
         name: 'HTML',
         extensions: ['.htm', '.html'],
@@ -86,27 +94,32 @@ export const languages: { [key in Language]: LanguageDescriptor } = {
     java: {
         name: 'Java',
         extensions: ['.java'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['class', 'function']
     },
     kotlin: {
         name: 'Kotlin',
         extensions: ['.kt', '.ktm', '.kts'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['fun', 'class', 'package', 'import']
     },
     swift: {
         name: 'Swift',
         extensions: ['.swift'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['func', 'class', 'struct', 'import']
     },
     "objective-c": {
         name: 'Objective C',
         extensions: ['.h', '.m', '.mm'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['class', 'namespace', 'template']
     },
     rust: {
         name: 'Rust',
         extensions: ['.rs', '.rs.in'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['fn', 'mod', 'pub', 'struct', 'enum', 'trait']
     },
     python: {
         name: 'Python',
@@ -117,23 +130,34 @@ export const languages: { [key in Language]: LanguageDescriptor } = {
     c: {
         name: 'C',
         extensions: ['.c', '.h'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['if', 'else', 'while', 'for', 'switch', 'case']
     },
     cpp: {
         name: 'C++',
         extensions: ['.cpp', '.h'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['class', 'namespace', 'template']
     },
     go: {
         name: 'Go',
         extensions: ['.go'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['func', 'package', 'import', 'type']
     },
     php: {
         name: 'PHP',
         extensions: ['.aw', '.ctp', '.fcgi', '.inc', '.php', '.php3', '.php4', '.php5', '.phps', '.phpt'],
-        comment: { start: '//' }
+        comment: { start: '//' },
+        stop: ['function', 'class', 'namespace', 'use']
     },
+    csharp: {
+        name: 'C#',
+        extensions: ['.cs'],
+        comment: { start: '//'},
+        stop: ['class', 'namespace', 'void']
+    },
+
 
     // Shell
     bat: {

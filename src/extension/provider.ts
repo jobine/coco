@@ -81,10 +81,12 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
         let res = '';
 
         for await (let tokens of generate(prompt, stop)) {
+            // info('generate: ' + tokens.response);
+            
             if (canceled && canceled()) {
                 break;
             }
-            // info('generate: ' + tokens.response);
+            
             res += tokens.response;
         }
 
@@ -94,7 +96,7 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
         }
 
         // Trim ends of all lines since sometimes the AI completion will add extra spaces
-        // res = res.split('\n').map((v) => v.trimEnd()).join('\n');
+        res = res.split('\n').map((v) => v.trimEnd()).join('\n');
 
         return res;
     }
@@ -104,91 +106,94 @@ export class CocoInlineCompletionItemProvider implements vscode.InlineCompletion
             return ;
         }
     
-        // check model exists
-        let modelExists = await checkModel(config.model);
-        if (!modelExists) {
-            // check if user ignored the model
-            if (this.#context.globalState.get('coco.ignored-model') === config.model) {
-                info(`Ignored model ${ config.model } since user abandoned.`);
-                return ;
-            }
-
-            // Ask for downloding
-            let download = await vscode.window.showInformationMessage(`Model '${config.model}' doesn't exist, click 'Yes' to download.`, 'Yes', 'No');
-            if (download === 'No') {
-                info(`Ignore downloading model ${ config.model } since user abandoned.`);
-                this.#context.globalState.update('coco.ignored-model', config.model);
-                return ;
-            }
-    
-            // downloading model
-            try {
-                setupStatusBar(StatusBarState.Downloading);
-                await downloadModel(config.model);
-            } catch (e) {
-                error('Error in downloading model: ', e);
-            } finally {
-                setupStatusBar();
-            }
-        }
-
-        if (cancellationToken.isCancellationRequested) {
-            info('Canceled completion request.');
-            return ;
-        }
-    
-        // check document schema matched
-        if (!isSupported(document)) {
-            info(`Unsupported document: ${document.uri.toString()} ignored.`);
-            return;
-        }
-    
-        // completion generating
         try {
-             setupStatusBar(StatusBarState.Loading);
+            // check model exists
+            let modelExists = await checkModel(config.model);
+        if (!modelExists) {
+                // check if user ignored the model
+                if (this.#context.globalState.get('coco.ignored-model') === config.model) {
+                    info(`Ignored model ${ config.model } since user abandoned.`);
+                    return ;
+                }
+
+                // Ask for downloding
+                let download = await vscode.window.showInformationMessage(`Model '${config.model}' doesn't exist, click 'Yes' to download.`, 'Yes', 'No');
+                if (download === 'No') {
+                    info(`Ignore downloading model ${ config.model } since user abandoned.`);
+                    this.#context.globalState.update('coco.ignored-model', config.model);
+                    return ;
+                }
         
-            if (!await this.#delayCompletion(config.delay, cancellationToken)) {
-                return ;
+                // downloading model
+                try {
+                    setupStatusBar(StatusBarState.Downloading);
+                    await downloadModel(config.model);
+                } catch (e) {
+                    error('Error in downloading model: ', e);
+                } finally {
+                    setupStatusBar();
+                }
             }
-    
+
             if (cancellationToken.isCancellationRequested) {
                 info('Canceled completion request.');
                 return ;
             }
+        
+            // check document schema matched
+            if (!isSupported(document)) {
+                info(`Unsupported document: ${document.uri.toString()} ignored.`);
+                return;
+            }
     
-            return await this.#lock.inLock(async () => {
-                let prepared = this.#preparePrompt(document, position, context);
-    
-                // completions
-                let completion: string | undefined = undefined;
-    
-                // TODO: need check cache
-                let cache = config.enableCache ? null : null;
-    
-                if (!!cache) {
-                    completion = cache;
-                } else {
-                    completion = await this.#generateCompletion(prepared.prompt, prepared.stop, () => cancellationToken.isCancellationRequested);
-                    info(`Completion: ${completion}`);
-                    // TODO: update cache
+            // completion generating
+            try {
+                setupStatusBar(StatusBarState.Loading);
+            
+                if (!await this.#delayCompletion(config.delay, cancellationToken)) {
+                    return ;
                 }
-
-                // if (cancellationToken.isCancellationRequested) {
-                //     info('Canceled completion request.');
-                //     return ;
-                // }
-
-                if (completion && completion.trim() !== '') {
-                    return [{
-                        insertText: completion,
-                        range: new vscode.Range(position, position)
-                    }];
+        
+                if (cancellationToken.isCancellationRequested) {
+                    info('Canceled completion request.');
+                    return ;
                 }
-            });
+        
+                return await this.#lock.inLock(async () => {
+                    let prepared = this.#preparePrompt(document, position, context);
+        
+                    // completions
+                    let completion: string | undefined = undefined;
+        
+                    // TODO: need check cache
+                    let cache = config.enableCache ? null : null;
+        
+                    if (!!cache) {
+                        completion = cache;
+                    } else {
+                        completion = await this.#generateCompletion(prepared.prompt, prepared.stop, () => cancellationToken.isCancellationRequested);
+                        info(`Completion: ${completion}`);
+                        // TODO: update cache
+                    }
+
+                    if (cancellationToken.isCancellationRequested) {
+                        info('Canceled completion request.');
+                        return ;
+                    }
+
+                    if (completion && completion.trim() !== '') {
+                        return [{
+                            insertText: completion,
+                            range: new vscode.Range(position, position)
+                        }];
+                    }
+                });
+            } finally {
+                setupStatusBar();
+            }
         } catch (e) {
             error('Error inline completion: ', e);
-        } finally {
-            setupStatusBar();
+            vscode.window.showInformationMessage('The LLM service is not available. Please launch the Ollama service if you are using a local LLM.', 'OK');
         }
     
         return undefined;

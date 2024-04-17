@@ -65,7 +65,6 @@ export async function downloadModel(model: string) {
                 await reader?.cancel();
             }
         }
-
     } else {
         warn(await res.text());
     }
@@ -87,6 +86,7 @@ export async function* generate(prompt: string, stop?: string[]): AsyncGenerator
 }
 
 export async function* generateLine(prompt: string, stop?: string[]): AsyncGenerator<string> {
+    const controller = new AbortController();
     const url = new URL('api/generate', config.endpoint);
     const body = {
         model: config.model,
@@ -98,13 +98,13 @@ export async function* generateLine(prompt: string, stop?: string[]): AsyncGener
             temperature: config.temperature
         }
     };
-
-    let res = await fetch(url, {
+    const res = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
+        signal: controller.signal
     });
 
     if (!!res.ok && !!res.body) {
@@ -139,11 +139,13 @@ export async function* generateLine(prompt: string, stop?: string[]): AsyncGener
                 // }
             }
         } finally {
-            reader?.releaseLock();
+            reader.releaseLock();
 
-            if (!reader?.closed) {
-                await reader?.cancel();
+            if (!reader.closed) {
+                await reader.cancel();
             }
+
+            controller.abort();
         }
 
     } else {
